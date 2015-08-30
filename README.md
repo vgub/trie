@@ -1,0 +1,1 @@
+Package trie provides a simple tree structure for word dictionary
