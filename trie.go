@@ -8,19 +8,22 @@ import (
 )
 
 type Leaf struct {
-	Leafes []Leaf      `json:"l,omitempty"`
+	Leaves []Leaf      `json:"l,omitempty"`
 	Value  rune        `json:"v"`
 	Data   interface{} `json:"d,omitempty"`
 }
 
 type Trie struct {
 	Tree []Leaf `json:"t"`
+	Size int64  `json:"c"`
 }
 
 type Word struct {
 	W string      `json:"w"`
 	D interface{} `json:"d"`
 }
+
+// Trie functions
 
 func (t *Trie) AddEntry(w string, d interface{}) {
 	var found bool = false
@@ -37,6 +40,7 @@ func (t *Trie) AddEntry(w string, d interface{}) {
 		t.Tree = append(t.Tree, Leaf{nil, s[0], nil})
 		i = len(t.Tree) - 1
 	}
+	t.Size++
 	t.Tree[i].addLeaf(s[1:], d)
 }
 
@@ -75,10 +79,14 @@ func (t *Trie) FindEntries(w string) []Word {
 		if l = t.Tree[i].findBrunch(s[1:]); l == nil {
 			return nil
 		}
-		l.findLeafes(w, 0, &dict)
+		l.findLeaves(w, 0, &dict)
 	}
 
 	return dict
+}
+
+func (t *Trie) DictSize() int64 {
+	return t.Size
 }
 
 func (t *Trie) PrintDict() {
@@ -95,6 +103,8 @@ func (t *Trie) Unmarshal(r io.Reader) error {
 	return json.NewDecoder(r).Decode(t)
 }
 
+// Leaf functions
+
 func (l *Leaf) addLeaf(s []rune, d interface{}) {
 	var found bool = false
 	var i int
@@ -103,17 +113,17 @@ func (l *Leaf) addLeaf(s []rune, d interface{}) {
 		l.Data = d
 		return
 	}
-	for i = 0; i < len(l.Leafes); i++ {
-		if l.Leafes[i].Value == s[0] {
+	for i = 0; i < len(l.Leaves); i++ {
+		if l.Leaves[i].Value == s[0] {
 			found = true
 			break
 		}
 	}
 	if !found {
-		l.Leafes = append(l.Leafes, Leaf{nil, s[0], nil})
-		i = len(l.Leafes) - 1
+		l.Leaves = append(l.Leaves, Leaf{nil, s[0], nil})
+		i = len(l.Leaves) - 1
 	}
-	l.Leafes[i].addLeaf(s[1:], d)
+	l.Leaves[i].addLeaf(s[1:], d)
 }
 
 func (l *Leaf) findLeaf(s []rune) interface{} {
@@ -123,8 +133,8 @@ func (l *Leaf) findLeaf(s []rune) interface{} {
 	if len(s) == 0 {
 		return l.Data
 	}
-	for i = 0; i < len(l.Leafes); i++ {
-		if l.Leafes[i].Value == s[0] {
+	for i = 0; i < len(l.Leaves); i++ {
+		if l.Leaves[i].Value == s[0] {
 			found = true
 			break
 		}
@@ -133,7 +143,7 @@ func (l *Leaf) findLeaf(s []rune) interface{} {
 		return nil
 	}
 
-	return l.Leafes[i].findLeaf(s[1:])
+	return l.Leaves[i].findLeaf(s[1:])
 }
 
 func (l *Leaf) findBrunch(s []rune) *Leaf {
@@ -143,8 +153,8 @@ func (l *Leaf) findBrunch(s []rune) *Leaf {
 	if len(s) == 0 {
 		return l
 	}
-	for i = 0; i < len(l.Leafes); i++ {
-		if l.Leafes[i].Value == s[0] {
+	for i = 0; i < len(l.Leaves); i++ {
+		if l.Leaves[i].Value == s[0] {
 			found = true
 			break
 		}
@@ -153,10 +163,10 @@ func (l *Leaf) findBrunch(s []rune) *Leaf {
 		return nil
 	}
 
-	return l.Leafes[i].findBrunch(s[1:])
+	return l.Leaves[i].findBrunch(s[1:])
 }
 
-func (l *Leaf) findLeafes(s string, level int, dict *[]Word) {
+func (l *Leaf) findLeaves(s string, level int, dict *[]Word) {
 	var stack string
 
 	if level == 0 {
@@ -168,9 +178,9 @@ func (l *Leaf) findLeafes(s string, level int, dict *[]Word) {
 		w := Word{stack, l.Data}
 		*dict = append(*dict, w)
 	}
-	if len(l.Leafes) > 0 {
-		for i := 0; i < len(l.Leafes); i++ {
-			l.Leafes[i].findLeafes(stack, level+1, dict)
+	if len(l.Leaves) > 0 {
+		for i := 0; i < len(l.Leaves); i++ {
+			l.Leaves[i].findLeaves(stack, level+1, dict)
 		}
 	}
 }
@@ -181,9 +191,9 @@ func (l *Leaf) printWords(s string) {
 	if l.Data != nil {
 		fmt.Println(stack, l.Data)
 	}
-	if len(l.Leafes) > 0 {
-		for i := 0; i < len(l.Leafes); i++ {
-			l.Leafes[i].printWords(stack)
+	if len(l.Leaves) > 0 {
+		for i := 0; i < len(l.Leaves); i++ {
+			l.Leaves[i].printWords(stack)
 		}
 	}
 }

@@ -23,6 +23,7 @@ func Test_JSON_Unmarshal(t *testing.T) {
 	tr.Unmarshal(reader)
 	dict := tr.FindEntries("автор")
 
+	fmt.Println("Dict size:", tr.DictSize())
 	for i := 0; i < len(dict); i++ {
 		fmt.Println(dict[i])
 	}
